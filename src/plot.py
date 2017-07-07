@@ -93,6 +93,7 @@ def plot_corr(X, Y, Uw, Vw, uMod, vMod, coreR, corr,i):
     plt.legend()
     plt.title('core Radius = %s Correlation = %s' %(round(coreR,3),round(corr,3)))
     plt.savefig('../results/vortex%i' % i,format='png')
+    plt.close('all')
     
 def plot_debug(X, Y, Uw, Vw, uMod, vMod, coreR, corr):
     plt.figure()

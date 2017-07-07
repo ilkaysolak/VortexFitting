@@ -160,7 +160,7 @@ if __name__ == '__main__':
         #    X, Y, Uw, Vw = tools.window(a,vortices[i][0],vortices[i][1],vortices[i][5])
         #    uMod, vMod = fitting.velocity_model(vortices[i][3], vortices[i][2],
         #     vortices[i][6], vortices[i][7], vortices[i][8], vortices[i][9], X, Y)
-            X, Y, Uw, Vw = tools.window(a,12,59,12)
+            X, Y, Uw, Vw = tools.window(a,14,21,12)
             plot.plot_quiver(X, Y, Uw, Vw, swirling)
                 
     elif args.plot_x == 'fit':

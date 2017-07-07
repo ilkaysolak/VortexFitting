@@ -34,7 +34,7 @@ def temporary(a,peaks,vorticity):
         if (len(a.dx)-10 > xCenter > 10) and (len(a.dy)-10 > yCenter > 10): #skip near wall
             gamma = vorticity[xCenter,yCenter]
             coreR = 4*(a.dx[xCenter+1]-a.dx[xCenter])
-            b = full_fit(coreR, gamma, a, xCenter, yCenter)
+            b = full_fit_iterative(coreR, gamma, a, xCenter, yCenter)
             if (b[4] > 0.75):
                 print("Accepted!")
                 vortices.append(b)
@@ -42,6 +42,9 @@ def temporary(a,peaks,vorticity):
 
 def full_fit_iterative(coreR, gamma, a, xCenter, yCenter):
     model = [[],[],[],[],[],[]]
+    coreR0 = coreR
+    gamma0 = gamma
+    model[0] = coreR
     model[1] = gamma
     fxCenter = a.dx[xCenter]
     fyCenter = a.dy[yCenter]
@@ -49,7 +52,6 @@ def full_fit_iterative(coreR, gamma, a, xCenter, yCenter):
     model[3] = fyCenter
     dx = a.dx[xCenter+1]-a.dx[xCenter]
     dy = a.dy[yCenter+1]-a.dx[yCenter]
-    model[0] = 0.05
     corrOld = 0.0
     corr = 0.001
     dist = 3
@@ -59,6 +61,7 @@ def full_fit_iterative(coreR, gamma, a, xCenter, yCenter):
         print('iter',i)
         distOld = dist
         corrOld = corr
+        radiusOld = model[0]
         u_conv = a.u[xCenter, yCenter]
         v_conv = a.v[xCenter, yCenter]
         X, Y, Uw, Vw = tools.window(a,xCenter,yCenter,dist)
@@ -68,33 +71,50 @@ def full_fit_iterative(coreR, gamma, a, xCenter, yCenter):
         print('dist:',dist,'Radius',round(model[0],3),'Gamma',
               round(model[1],3),'corr',round(corr,3),'x',model[2],
               'y',model[3],'u_conv',u_conv,'v_conv',v_conv,
-              'xC',xCenter,'yC',yCenter)
-        #print('x diff', model[2]- fxCenter)
+              'xC',xCenter,'yC',yCenter,dx,dy)
+        print('x diff', model[2]- fxCenter)
         if (model[2]-fxCenter > dx):
-            print('reduce x!')
-            xCenter = xCenter -1
-        elif (model[2]-fxCenter < -dx):
-            print('increase x')
+            print('increase x!')
             xCenter = xCenter +1
+        elif (model[2]-fxCenter < -dx):
+            print('decrease x')
+            xCenter = xCenter -1
         fxCenter = model[2]
-        #print('y diff',model[3]- fyCenter)
+        print('y diff',model[3]- fyCenter)
         if (model[3]-fyCenter > dy):
-            print('reduce y!')
-            yCenter = yCenter -1
-        elif (model[3]-fyCenter < -dy):
             print('increase y!')
             yCenter = yCenter +1
-        fxCenterOld = model[2]
-        fyCenterOld = model[3]
+        elif (model[3]-fyCenter < -dy):
+            print('decrease y!')
+            yCenter = yCenter -1
+        fxCenter = model[2]
+        fyCenter = model[3]
         errorCorr = corr/corrOld -1
-        dist = int(round(model[0]/dx,0))#dist - 1
+        #plot.plot_debug(X, Y, Uw, Vw, uMod, vMod, model[0], corr)
+        dist = int(round(2*model[0]/dx,0))#dist - 1
+        if (dist < 3):
+            dist = 3
+            print("mesh forced to 3")
+        if (dist > xCenter or dist > yCenter):
+            print("Aborted, lower limit of domain")
+            break
+        if (dist > a.dx.size - xCenter or dist > a.dy.size - yCenter):
+            print("Aborted, upper limit of domain")
+            break
         if (distOld != dist):
             print("resized!")
-        #if (corr < 0.3):
-        #    break
-        #plot.plot_corr(X, Y, Uw, Vw, uMod, vMod, model[0], corr)
+        if (corr > 0.2):
+            continue
+        else:
+            print("Aborted, correlation < 0.2")
+            break
+        errorRadius = abs((model[0]/radiusOld)-1)
+        if (errorRadius < 0.0001):
+            print(model[0],radiusOld)
+            #break
         
-    return model[0],model[1], corr, dist, model[2], model[3], u_conv, v_conv, xCenter, yCenter
+    #if (model[2] or model[3])    
+    return xCenter, yCenter, model[1], model[0], corr, dist, model[2], model[3], u_conv, v_conv
 
 def full_fit(coreR, gamma, a, xCenter, yCenter):
     model = [[],[],[],[],[],[]]
@@ -151,8 +171,8 @@ def fit(coreR, gamma, x, y, fxCenter, fyCenter, Uw, Vw, u_conv, v_conv):
         zy = (z + v_conv)*(y-fitted[3]) -Vw
         zt = np.append(zx,zy)
         return zt
-    bnds=([0.001,-100,fxCenter-0.03,fyCenter-0.1],
-          [2.0,100,fxCenter+0.03,fyCenter+0.1])
+    bnds=([0.005,gamma-50,fxCenter-0.04,fyCenter-0.04],
+          [coreR+0.1,gamma+50,fxCenter+0.04,fyCenter+0.04])
     sol = optimize.least_squares(fun, [coreR,gamma,fxCenter,fyCenter],bounds=bnds,method='dogbox')     
     #Levenberg working!
     #sol = optimize.least_squares(fun, [coreR,gamma,fxCenter,fyCenter],method='lm')
