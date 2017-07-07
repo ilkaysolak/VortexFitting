@@ -52,10 +52,10 @@ if __name__ == '__main__':
                         help='Box size for the detection')
     
     parser.add_argument('-f', '--flip', dest='flip',
-                        default=False, type=bool,
+                        default=True, type=bool,
                         help='Flip X and Y axis for plotting, 0 = False, 1 = True')
                         
-    parser.add_argument('--nofit', dest='nofit',
+    parser.add_argument('-n', '--nofit', dest='nofit',
                         default=False, type=bool,
                         help='Disables fitting procedure')
     
@@ -154,15 +154,20 @@ if __name__ == '__main__':
                 print('x1:',xCenter,'x2:',yCenter, 'swirl:',peaks[2][i])
                 plot.plot_quiver(X, Y, Uw, Vw, swirlingw)
     elif args.plot_x == 'quiver':
-        for i in range(len(vortices)):
-            swirlingw = swirling[vortices[i][0]-vortices[i][5]:vortices[i][0]+vortices[i][5],
-              vortices[i][1]-vortices[i][5]:vortices[i][1]+vortices[i][5]]
-            X, Y, Uw, Vw = tools.window(a,vortices[i][0],vortices[i][1],vortices[i][5])
-            uMod, vMod = fitting.velocity_model(vortices[i][3], vortices[i][2],
-             vortices[i][6], vortices[i][7], vortices[i][8], vortices[i][9], X, Y)
-            plot.plot_quiver(X, Y, Uw, Vw, swirlingw)
+        #for i in range(len(vortices)):
+        #    swirlingw = swirling[vortices[i][0]-vortices[i][5]:vortices[i][0]+vortices[i][5],
+        #      vortices[i][1]-vortices[i][5]:vortices[i][1]+vortices[i][5]]
+        #    X, Y, Uw, Vw = tools.window(a,vortices[i][0],vortices[i][1],vortices[i][5])
+        #    uMod, vMod = fitting.velocity_model(vortices[i][3], vortices[i][2],
+        #     vortices[i][6], vortices[i][7], vortices[i][8], vortices[i][9], X, Y)
+            X, Y, Uw, Vw = tools.window(a,12,59,12)
+            plot.plot_quiver(X, Y, Uw, Vw, swirling)
                 
     elif args.plot_x == 'fit':
+        outfile = open('../results/vortices.dat','w')
+        outfile.write('X Y gamma radius corr mesh x y u_c v_c \n')
+        for line in vortices:
+            outfile.write("%s %s %s %s %s %s %s %s %s %s \n" % line)
         for i in range(len(vortices)):
             print('xC:',vortices[i][0],'yC:',vortices[i][1], 'vort:',vortices[i][2],
              'mesh',vortices[i][5], 'corr',vortices[i][4], 'coreR',vortices[i][3])
@@ -170,7 +175,7 @@ if __name__ == '__main__':
             uMod, vMod = fitting.velocity_model(vortices[i][3], vortices[i][2],
              vortices[i][6], vortices[i][7], vortices[i][8], vortices[i][9], X, Y)
             corr = fitting.correlation_coef(Uw,Vw,uMod,vMod)
-            plot.plot_corr(X, Y, Uw, Vw, uMod, vMod, vortices[i][3], vortices[i][4])
+            plot.plot_corr(X, Y, Uw, Vw, uMod, vMod, vortices[i][3], vortices[i][4],i)
     elif args.plot_x == 'radius':
         plot.plot_radius(vortices)
     
