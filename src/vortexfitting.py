@@ -44,7 +44,7 @@ if __name__ == '__main__':
                              'swirling = 2D Swirling Strength')
     
     parser.add_argument('-t', '--threshold', dest='threshold',
-                        default=1.5, type=float,
+                        default=0.0, type=float,
                         help='Threshold for detection, integer')
 
     parser.add_argument('-b', '--boxsize', dest='boxsize',
@@ -105,8 +105,12 @@ if __name__ == '__main__':
     #print(round(time.time() - lap,3), 'seconds')
 
     if a.norm == True:
-        swirling = tools.normalize(swirling,a.normdir) #normalization
-
+        swirling = swirling/(np.std(swirling))
+        #vorticity = vorticity/(np.std(vorticity))
+        #swirling = tools.normalize(swirling,a.normdir) #normalization
+        #vorticity = tools.normalize(vorticity,a.normdir)
+    print(vorticity[1,1])
+    
     #---- PEAK DETECTION ----#
     print("threshold=",args.threshold,"box size=",args.boxsize)
 
@@ -122,9 +126,10 @@ if __name__ == '__main__':
     if (args.nofit == True):
         print("No fitting")
     else:
-        vortices = fitting.temporary(a,peaks,vorticity)
+        vortices = fitting.get_vortices(a,peaks,vorticity)
         print('---- Accepted vortices ----')
         print(len(vortices))
+        print(vortices)
     #print('xCenter, yCenter, gamma, core Radius, correlation, mesh distance')
     #for vortex in vortices:
     #    print(vortex)
@@ -160,7 +165,7 @@ if __name__ == '__main__':
         #    X, Y, Uw, Vw = tools.window(a,vortices[i][0],vortices[i][1],vortices[i][5])
         #    uMod, vMod = fitting.velocity_model(vortices[i][3], vortices[i][2],
         #     vortices[i][6], vortices[i][7], vortices[i][8], vortices[i][9], X, Y)
-            X, Y, Uw, Vw = tools.window(a,14,21,12)
+            X, Y, Uw, Vw = tools.window(a,235,58,15)
             plot.plot_quiver(X, Y, Uw, Vw, swirling)
                 
     elif args.plot_x == 'fit':
@@ -170,12 +175,24 @@ if __name__ == '__main__':
             outfile.write("%s %s %s %s %s %s %s %s %s %s \n" % line)
         for i in range(len(vortices)):
             print('xC:',vortices[i][0],'yC:',vortices[i][1], 'vort:',vortices[i][2],
-             'mesh',vortices[i][5], 'corr',vortices[i][4], 'coreR',vortices[i][3])
-            X, Y, Uw, Vw = tools.window(a,vortices[i][0],vortices[i][1],vortices[i][5])
+             'mesh',vortices[i][5], 'corr',vortices[i][4], 'coreR',vortices[i][3],
+             'u_conv',vortices[i][8],'v_conv',vortices[i][9])
+            X, Y, Uw, Vw = tools.window(a,vortices[i][0],vortices[i][1],vortices[i][5]*2)
             uMod, vMod = fitting.velocity_model(vortices[i][3], vortices[i][2],
              vortices[i][6], vortices[i][7], vortices[i][8], vortices[i][9], X, Y)
             corr = fitting.correlation_coef(Uw,Vw,uMod,vMod)
-            plot.plot_corr(X, Y, Uw, Vw, uMod, vMod, vortices[i][3], vortices[i][4],i)
+            #Uw = Uw / np.sqrt(Uw**2 + Vw**2);
+            #Vw = Vw / np.sqrt(Uw**2 + Vw**2);
+            plot.plot_corr(X, Y, Uw, Vw, uMod, vMod, vortices[i][6],
+                          vortices[i][7], vortices[i][3], vortices[i][4],i)
+            dx = a.dx[2]-a.dx[1]
+            dy = a.dy[2]-a.dx[1]
+            temp_x = int(round(vortices[i][6]/dx,0))
+
+            temp_y = int(round(vortices[i][7]/dy,0))
+            temp_y = temp_y + 1
+            print(vortices[i][0],'->',temp_x,vortices[i][1],'->',temp_y)
+            
     elif args.plot_x == 'radius':
         plot.plot_radius(vortices)
     

@@ -39,8 +39,8 @@ if __name__ == '__main__':
         model[1] = gamma
         coreRori = model[0]
         gammaori = model[1]
-        X = np.linspace(-1,1,dist)
-        Y = np.linspace(-1,1,dist)
+        X = np.linspace(-5,5,dist)
+        Y = np.linspace(-5,5,dist)
         X, Y = np.meshgrid(X,Y)
         fxCenter = 0.0
         fyCenter = 0.0
@@ -49,10 +49,12 @@ if __name__ == '__main__':
         Uw, Vw = fitting.velocity_model(coreR, gamma, fxCenter, fyCenter, u_conv, v_conv, X+xdrift, Y+ydrift)
         Uw = Uw + u_conv
         Vw = Vw + v_conv
+        corr = 0
+        #plot.plot_debug(X, Y, Uw, Vw, Uw, Vw, model[0], corr)
         # NOISE
-        Uw = np.random.normal(Uw,0.3)
-        Vw = np.random.normal(Vw,0.3)
-        model = fitting.fit(coreR, gamma, X, Y, fxCenter, fyCenter, Uw, Vw, u_conv, v_conv)
+        Uw = np.random.normal(Uw,0.01)
+        Vw = np.random.normal(Vw,0.01)
+        model = fitting.fit(coreR, gamma, X, Y, fxCenter, fyCenter, Vw, Uw, v_conv, u_conv)
         print('coreR:',model[0],'error(%):',(1-(model[0])/coreRori)*100)
         print('gamma:',model[1],'error(%):',(1-(model[1])/gammaori)*100)
         print('fxCenter:',model[2])
@@ -65,9 +67,9 @@ if __name__ == '__main__':
         corr = fitting.correlation_coef(Uw,Vw,uMod,vMod)
         print('correlation:',corr)
         print('---')
-        plot.plot_corr(X, Y, Uw, Vw, uMod, vMod, model[0], corr)
+        plot.plot_debug(X, Y, Uw, Vw, uMod, vMod, model[0], corr)
   
-    test_oseen(0.2,10,10,0.0,0.0)
-    test_oseen(0.2,10,10,0.2,0.2)
-    test_oseen(0.9,40,10,0.0,0.0)
-    test_oseen(0.9,40,10,0.2,0.2)
+    #test_oseen(0.2,10,10,0.0,0.0)
+    #test_oseen(0.2,10,10,0.2,0.2)
+    #test_oseen(0.9,40,10,0.0,0.0)
+    test_oseen(0.9,10,10,0.0,0.0)

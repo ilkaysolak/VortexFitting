@@ -16,7 +16,7 @@ def second_order_diff(a):
         For example:
         a.derivative['dudx']
     """
-    x, y = np.meshgrid(a.dx,a.dy)
+    #x, y = np.meshgrid(a.dx,a.dy)
     dx = a.dx[1]-a.dx[0] #only for homogeneous mesh
     dy = a.dy[1]-a.dy[0] #only for homogeneous mesh
     #print('dx,dy',dx,dy)

@@ -80,9 +80,27 @@ def plot_quiver(X, Y, Uw, Vw, field):
     
     plt.show()
     
-def plot_corr(X, Y, Uw, Vw, uMod, vMod, coreR, corr,i):
+def plot_corr(X, Y, Uw, Vw, uMod, vMod, xc, yc, coreR, corr,i):
     plt.figure()
-    plt.title('Correlation')
+    s = 1
+    if (X.size > 400):
+        s = 2
+    plt.quiver(X[::s,::s], Y[::s,::s], Uw[::s,::s],Vw[::s,::s],
+               color='r',label='data',scale=10)
+    plt.quiver(X[::s,::s], Y[::s,::s], uMod[::s,::s], vMod[::s,::s],
+               color='b',label='model',scale=10)
+    circle1=plt.Circle((xc,yc),coreR,color='r',alpha=0.05)
+    plt.gca().add_artist(circle1)
+    plt.legend()
+    plt.grid()
+    plt.axes().set_aspect('equal')
+    plt.title('core Radius = %s Correlation = %s' %(round(coreR,3),round(corr,3)))
+    plt.savefig('../results/vortex%i' % i,format='png')
+    plt.close('all')
+    #plt.show()
+    
+def plot_corr_center(X, Y, Uw, Vw, uMod, vMod, xc, yc, coreR, corr,i):
+    plt.figure()
     s = 1
     if (X.size > 400):
         s = 2
@@ -90,9 +108,13 @@ def plot_corr(X, Y, Uw, Vw, uMod, vMod, coreR, corr,i):
                color='r',label='data')
     plt.quiver(X[::s,::s], Y[::s,::s], vMod[::s,::s], uMod[::s,::s],
                color='b',label='model')
+    circle1=plt.Circle((xc,yc),coreR,color='r',alpha=0.1)
+    plt.gca().add_artist(circle1)
     plt.legend()
+    plt.grid()
+    plt.axes().set_aspect('equal')
     plt.title('core Radius = %s Correlation = %s' %(round(coreR,3),round(corr,3)))
-    plt.savefig('../results/vortex%i' % i,format='png')
+    plt.savefig('../results/vortex%i_center' % i,format='png')
     plt.close('all')
     
 def plot_debug(X, Y, Uw, Vw, uMod, vMod, coreR, corr):
